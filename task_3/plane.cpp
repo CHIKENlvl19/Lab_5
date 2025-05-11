@@ -15,8 +15,6 @@ enum class Command
 };
 
 int main() {
-    setlocale(LC_ALL, "Russian");
-
     map<string, int> commandMap = {
         {"CREATE_PLANE", 0},
         {"PLANES_FOR_TOWN", 1},
@@ -32,21 +30,26 @@ int main() {
 
         Command command = static_cast<Command>(commandMap[commandValue]);
 
-        if (command == Command::CREATE_PLANE) {
+        if (command == Command::CREATE_PLANE) 
+        {
             CREATE_PLANE(V);
         }
-        else if (command == Command::PLANES_FOR_TOWN) {
+        else if (command == Command::PLANES_FOR_TOWN) 
+        {
             string town;
             cin >> town;
             PLANES_FOR_TOWN(V, town);
         }
-        else if (command == Command::TOWNS_FOR_PLANE) {
+        else if (command == Command::TOWNS_FOR_PLANE) 
+        {
             TOWNS_FOR_PLANE(V);
         }
-        else if (command == Command::PLANES) {
+        else if (command == Command::PLANES) 
+        {
             PLANES(V);
         }
-        else {
+        else 
+        {
             cout << "Такой команды нет" << endl;
         }
     }
