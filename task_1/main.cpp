@@ -1,176 +1,153 @@
 #include <iostream>
 #include <string>
+#include <map>
 #include <vector>
-#include <utility>
 #include <iomanip>
+#include <cstring> // для memcmp
 
 using namespace std;
 
-int main()
-{
-    // яйчейка: A 1 2 3
-    int store[4][8][2][1] = { 0 };
-    string storeName[4][8][2][1];
+// проверка, начинается ли строка с заданного UTF-8 символа
+bool startsWithUTF8(const string& str, const char* utf8Bytes, size_t len) {
+    if (str.length() < len) return false;
+    return memcmp(str.c_str(), utf8Bytes, len) == 0;
+}
 
-    int Azona = 0;
-    int Bzona = 0;
-    int Czona = 0;
-    int Dzona = 0;
- 
-    while (true) 
-    {
-        string comand;
-        cin >> comand;
+int main() {
+    // настройки склада
+    const int ZONES = 5;
+    const int RACKS = 8;
+    const int SECTIONS = 2;
+    const int SHELVES = 1;
+    const int MAX_CELL_CAPACITY = 10;
+    const int TOTAL_CAPACITY = ZONES * RACKS * SECTIONS * SHELVES * MAX_CELL_CAPACITY;
 
-        bool check = true;
+    // склад и названия товаров
+    int store[ZONES][RACKS][SECTIONS][SHELVES] = {0};
+    string storeName[ZONES][RACKS][SECTIONS][SHELVES];
 
-        if (comand != "ADD" || comand != "REMOVE" || comand != "INFO") 
-        {
-            check = false;
-        }
-    
-        if (check == false)
-        {    
-            cout << "Команда неверная.";
-        }
+    // загрузка зон
+    int zoneCapacity[ZONES] = {0};
 
-        if (comand == "ADD" || comand == "REMOVE") 
-        {
+    // UTF-8 последовательности для зон
+    struct Zone {
+        const char* utf8; // указатель на UTF-8 байты
+        size_t length;    // длина UTF-8 символа (2 байта для кириллицы)
+        int index;
+    };
+
+    vector<Zone> zones = {
+        { "\xD0\x90", 2, 0 }, // А
+        { "\xD0\x91", 2, 1 }, // Б
+        { "\xD0\x92", 2, 2 }, // В
+        { "\xD0\x93", 2, 3 }, // Г
+        { "\xD0\x94", 2, 4 }  // Д
+    };
+
+    while (true) {
+        string command;
+        cin >> command;
+
+        if (command == "ADD" || command == "REMOVE") {
             string product;
-            int qual;
-            cin >> product >> qual;
-
+            int quantity;
             string cell;
-            cin >> cell;
 
-            char z = cell[0];
-            int zona = static_cast<int>(z) + 64; // парсинг имени зоны (А, Б, В, Г)
+            cin >> product >> quantity >> cell;
 
-            char s = cell[1];
-            int rack = static_cast<int>(s) - 49;
-
-            char s1 = cell[2];
-            int section = static_cast<int>(s1) - 49;
-
-            char p = cell[3];
-            int shelf = static_cast<int>(p) - 49;
-
-   
-            if (qual > 10) 
-            {
-                cout << "Больше 10 единиц товара" << endl;
-            }
-
-            else if (zona > 3 || rack > 7 || section > 1 || shelf > 0) 
-            {
-                cout << "Нет такого адреса" << endl;
-            }
-
-            else if (comand == "ADD") 
-            {
-
-                if (store[zona][rack][section][shelf] == 0) 
-                {
-                    store[zona][rack][section][shelf] = qual;
-                    storeName[zona][rack][section][shelf] = product;
-
-                    if (zona == 0) 
-                    {
-                        Azona += qual;
-                    }
-
-                    if (zona == 1) 
-                    {   
-                        Bzona += qual;
-                    }
-
-                    if (zona == 2) 
-                    {
-                        Czona += qual;
-                    }
-
-                    if (zona == 3) 
-                    {
-                        Dzona += qual;
-                    }
-
+            // парсинг зоны
+            int zone = -1;
+            size_t zoneLength = 0;
+            for (const auto& z : zones) {
+                if (startsWithUTF8(cell, z.utf8, z.length)) { // используйте z.utf8 вместо z
+                    zone = z.index;
+                    zoneLength = z.length;
+                    break;
                 }
-                else
-                {
-                    cout << "Полка занята." << endl;
-                }
-
             }
-            
-            else if (comand == "REMOVE") 
-            {
 
-                if (storeName[zona][rack][section][shelf] == product && store[zona][rack][section][shelf] >= qual) 
-                {
-                    store[zona][rack][section][shelf] -= qual;
-
-                    if (zona == 0) 
-                    {
-                        Azona -= qual;
-                    }
-
-                    if (zona == 1) 
-                    {
-                        Bzona -= qual;
-                    }
-
-                    if (zona == 2) 
-                    {
-                        Czona -= qual;
-                    }
-
-                    if (zona == 3) 
-                    {
-                        Dzona -= qual;
-                    }
-
-                }   
-
-                else 
-                {
-                    cout << "На полке другой товар или товара не достаточно." << endl;
-                }
-
+            if (zone == -1) {
+                cout << "Неверная зона хранения" << endl;
+                continue;
             }
-        }
-        else if (comand == "INFO") 
-        {
 
-            double zagruz = (Azona + Bzona + Czona + Dzona) * 100.0 / 640;
+            // парсинг стеллажа (одна цифра)
+            if (cell.length() < zoneLength + 1 || !isdigit(cell[zoneLength])) { // используйте z.length вместо z
+                cout << "Неверный номер стеллажа" << endl;
+                continue;
+            }
+            int rack = cell[zoneLength] - '0' - 1; // используйте z.length вместо z
+            if (rack < 0 || rack >= RACKS) {
+                cout << "Нет такого стеллажа" << endl;
+                continue;
+            }
 
-            double zagruzA = Azona * 100.0 / 160;
-            double zagruzB = Bzona * 100.0 / 160;
-            double zagruzC = Czona * 100.0 / 160;
-            double zagruzD = Dzona * 100.0 / 160;
+            // парсинг секции
+            if (cell.length() < zoneLength + 2 || !isdigit(cell[zoneLength + 1])) { // используйте z.length вместо z
+                cout << "Неверный номер секции" << endl;
+                continue;
+            }
+            int section = cell[zoneLength + 1] - '0' - 1; // используйте z.length вместо z
+            if (section < 0 || section >= SECTIONS) {
+                cout << "Нет такой секции" << endl;
+                continue;
+            }
 
-            cout << "Склад загружен на " << zagruz << "%" << endl;
-            cout << "Зона А загружена на " << zagruzA << "%" << endl;
-            cout << "Зона Б загружена на " << zagruzB << "%" << endl;
-            cout << "Зона В загружена на " << zagruzC << "%" << endl;
-            cout << "Зона Г загружена на " << zagruzD << "%" << endl;
+            // парсинг полки (всегда 1)
+            if (cell.length() < zoneLength + 3 || cell[zoneLength + 2] != '1') {
+                cout << "Нет такой полки" << endl;
+                continue;
+            }
+            int shelf = 0;
+
+            // обработка команд ADD и REMOVE
+            if (command == "ADD") {
+                if (store[zone][rack][section][shelf] == 0) {
+                    store[zone][rack][section][shelf] = quantity;
+                    storeName[zone][rack][section][shelf] = product;
+                    zoneCapacity[zone] += quantity;
+                    cout << "Товар добавлен" << endl;
+                } else {
+                    cout << "Ячейка занята" << endl;
+                }
+            } else if (command == "REMOVE") {
+                if (storeName[zone][rack][section][shelf] == product && store[zone][rack][section][shelf] >= quantity) {
+                    store[zone][rack][section][shelf] -= quantity;
+                    zoneCapacity[zone] -= quantity;
+                    if (store[zone][rack][section][shelf] == 0) {
+                        storeName[zone][rack][section][shelf] = "";
+                    }
+                    cout << "Товар удален" << endl;
+                } else {
+                    cout << "Невозможно удалить товар" << endl;
+                }
+            }
+        } else if (command == "INFO") {
+            // вычисление загрузки
+            int totalUsed = 0;
+            for (int i = 0; i < ZONES; i++) {
+                totalUsed += zoneCapacity[i];
+            }
+            double totalLoad = (totalUsed * 100.0) / TOTAL_CAPACITY;
+
+            cout << fixed << setprecision(2);
+            cout << "Склад загружен на " << totalLoad << "%" << endl;
+
+            // загрузка по зонам
+            const char* zoneNames[] = {"А", "Б", "В", "Г", "Д"};
+            for (int i = 0; i < ZONES; i++) {
+                double zoneLoad = (zoneCapacity[i] * 100.0) / (RACKS * SECTIONS * SHELVES * MAX_CELL_CAPACITY);
+                cout << "Зона " << zoneNames[i] << " загружена на " << zoneLoad << "%" << endl;
+            }
+
             cout << endl << "Содержимое склада:" << endl;
-
-            for (int i1 = 0; i1 < 4; i1++) 
-            {
-                for (int i2 = 0; i2 < 8; i2++) 
-                {
-                    for (int i3 = 0; i3 < 2; i3++) 
-                    {
-                        for (int i4 = 0; i4 < 1; i4++) 
-                        {
-
-                            char zon = static_cast<char>(i1 /*- 64*/);
-
-                            if (store[i1][i2][i3][i4] != 0) 
-                            {
-
-                                cout << zon << i2 + 1 << i3 + 1 << i4 + 1 << " ";
-                                cout << storeName[i1][i2][i3][i4] << " " << store[i1][i2][i3][i4] << endl;
+            for (int z = 0; z < ZONES; z++) {
+                for (int r = 0; r < RACKS; r++) {
+                    for (int s = 0; s < SECTIONS; s++) {
+                        for (int p = 0; p < SHELVES; p++) {
+                            if (store[z][r][s][p] > 0) {
+                                cout << zoneNames[z] << (r + 1) << (s + 1) << (p + 1) << " ";
+                                cout << storeName[z][r][s][p] << " " << store[z][r][s][p] << endl;
                             }
                         }
                     }
@@ -178,29 +155,18 @@ int main()
             }
 
             cout << endl << "Пустые ячейки:" << endl;
-
-            //vector<int> Zones {, , , };
-            for (int i1 = 0; i1 < 4; i1++) 
-            {
-                for (int i2 = 0; i2 < 8; i2++) 
-                {
-                    for (int i3 = 0; i3 < 2; i3++) 
-                    {
-                        for (int i4 = 0; i4 < 1; i4++) 
-                        {
-
-                            char zon = static_cast<char>(i1 - 64);
-
-                            //char zone = static_cast<char>(Zones[i1]);
-
-                            if (store[i1][i2][i3][i4] == 0) 
-                            {
-                                cout << zon << i2 + 1 << i3 + 1 << i4 + 1 << " ";
+            for (int z = 0; z < ZONES; z++) {
+                for (int r = 0; r < RACKS; r++) {
+                    for (int s = 0; s < SECTIONS; s++) {
+                        for (int p = 0; p < SHELVES; p++) {
+                            if (store[z][r][s][p] == 0) {
+                                cout << zoneNames[z] << (r + 1) << (s + 1) << (p + 1) << " ";
                             }
                         }
                     }
                 }
             }
+            cout << endl;
         }
     }
 }
