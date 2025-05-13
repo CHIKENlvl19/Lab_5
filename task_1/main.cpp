@@ -4,6 +4,7 @@
 #include <vector>
 #include <iomanip>
 #include <cstring> // для memcmp
+#include <locale>
 
 using namespace std;
 
@@ -14,8 +15,10 @@ bool startsWithUTF8(const string& str, const char* utf8Bytes, size_t len) {
 }
 
 int main() {
+    setlocale(LC_ALL, "ru_RU.UTF-8");
+
     // настройки склада
-    const int ZONES = 5;
+    const int ZONES = 4;
     const int RACKS = 8;
     const int SECTIONS = 2;
     const int SHELVES = 1;
@@ -40,8 +43,7 @@ int main() {
         { "\xD0\x90", 2, 0 }, // А
         { "\xD0\x91", 2, 1 }, // Б
         { "\xD0\x92", 2, 2 }, // В
-        { "\xD0\x93", 2, 3 }, // Г
-        { "\xD0\x94", 2, 4 }  // Д
+        { "\xD0\x93", 2, 3 }  // Г
     };
 
     while (true) {
@@ -101,7 +103,7 @@ int main() {
             int shelf = 0;
 
             // обработка команд ADD и REMOVE
-            if (command == "ADD") {
+            if (command == "ADD") { // проверить кол-во добавляемого товара (10 макс на одну яйчейку)
                 if (store[zone][rack][section][shelf] == 0) {
                     store[zone][rack][section][shelf] = quantity;
                     storeName[zone][rack][section][shelf] = product;
