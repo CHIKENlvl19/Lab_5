@@ -67,7 +67,6 @@ int Out(vector<int>& V, int qual) {
 }
 
 int main() {
-    //setlocale(LC_ALL, "Russian");
     cout << "Введите кол-во окон" << endl;
     int qual;
     cin >> qual;
