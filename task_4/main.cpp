@@ -17,9 +17,9 @@ void CLASS(int day, string cl) {
     }  
  
     classes[day].push_back(cl);
-    for (int i = 0; i < classes[day].size(); i++) 
+    for (size_t i = 0; i < classes[day].size(); i++) 
     {
-        for (int j = 1; j < classes[day].size(); j++) 
+        for (size_t j = 1; j < classes[day].size(); j++) 
         {
             auto iter = cbegin(classes[day]);
             if (classes[day][i] == classes[day][j]) 
