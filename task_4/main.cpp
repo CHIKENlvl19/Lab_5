@@ -5,11 +5,7 @@
 
 using namespace std;
 
-map<int, vector<string>> classes;
-int curMonth = 1;
-vector<int> daysInMonth{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-void CLASS(int day, string cl) {
+void CLASS(int day, string cl, int &curMonth, const vector<int>& daysInMonth, map<int, vector<string>>& classes) {
     if (day > daysInMonth[curMonth - 1]) 
     {
         cout << "Error. In this month " << daysInMonth[curMonth - 1] << " days.";
@@ -30,7 +26,7 @@ void CLASS(int day, string cl) {
     }
 }
 
-void NEXT() {
+void NEXT(int &curMonth, const vector<int>& daysInMonth, map<int, vector<string>>& classes) {
     if (daysInMonth[curMonth - 1] >= daysInMonth[curMonth]) 
     {
         int lastDay = daysInMonth[curMonth - 1];
@@ -48,7 +44,7 @@ void NEXT() {
     curMonth++;
 }
 
-void VIEW(int day) {
+void VIEW(int day, int &curMonth, const vector<int>& daysInMonth, map<int, vector<string>>& classes) {
     if (day > daysInMonth[curMonth - 1]) 
     {
         cout << "Error. In this month " << daysInMonth[curMonth - 1] << " days.";
@@ -74,6 +70,10 @@ void VIEW(int day) {
 
 int main() {
 
+    map<int, vector<string>> classes;
+    int curMonth = 1;
+    vector<int> daysInMonth{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
     int qual;
     cin >> qual;
 
@@ -88,18 +88,18 @@ int main() {
             string cl;
             
             cin >> day >> cl;
-            CLASS(day, cl);
+            CLASS(day, cl, curMonth, daysInMonth, classes);
         }
         else if (command == "NEXT") 
         {
-            NEXT();
+            NEXT(curMonth, daysInMonth, classes);
         }
         else if (command == "VIEW") 
         {
             int day;
             cin >> day;
             
-            VIEW(day);
+            VIEW(day, curMonth, daysInMonth, classes);
         }
     }
 }
