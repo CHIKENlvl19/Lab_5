@@ -66,7 +66,7 @@ void VIEW(int day) {
         
         cout << endl;
     }
-    else 
+    else
     {
         cout << "In " << day << " day We are free!" << endl;
     }
