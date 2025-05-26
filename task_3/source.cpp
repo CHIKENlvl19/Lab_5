@@ -21,18 +21,16 @@ int CREATE_PLANE(vector<vector<string>>& V)
         }
     }
     if (k < 2) {
-        cout << "Мало городов";
-        exit(0);
+        cout << "Мало городов.";
     }
     if (word.size() != 0) {
         onePlane.push_back(word);
     }
 
-    bool flag = true;
     for (int i = 0; i < V.size(); i++) {
         if (V[i][0] == onePlane[0]) {
-            flag = false;
             cout << "Такой уже есть" << endl;
+            return 0;
         }
     }
 
@@ -40,14 +38,13 @@ int CREATE_PLANE(vector<vector<string>>& V)
         for (int j = i + 1; j < onePlane.size(); j++) {
             if (onePlane[i] == onePlane[j]) {
                 cout << "Города повторяются";
-                exit(0);
+                return 0;
             }
         }
     }
-
-    if (flag) {
-        V.push_back(onePlane);
-    }
+        
+    V.push_back(onePlane);
+    
     cout << endl;
 
     return 0;
